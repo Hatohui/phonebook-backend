@@ -57,6 +57,10 @@ app.get('/', (request, response) => {
    response.send('<>Hello</>')
 })
 
+app.get('/colonD', (request, response) => {
+   response.send("<div>Yes, this is a page dedicated for a bitch</div>")
+})
+
 app.get('/api/persons', (request, response) => {
    response.json(persons)
 })
