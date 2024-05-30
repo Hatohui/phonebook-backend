@@ -10,25 +10,28 @@ const { trusted } = require('mongoose');
 
 //handlers
 const unknownEndpoint = (request, response) => {
-   response.status(404).send({error: "page not found"})
+   response.status(404).send({ error: "page not found" })
 }
 const errorHandler = (error, request, response, next) => {
-   console.log (error.message);
+   console.log(error.message);
 
-   if (error.name === 'CastError')
-      return response.status(400).send({error: 'invalid ID'})
+   if (error.name === 'CastError') {
+      return response.status(400).send({ error: 'invalid ID' })
+   } else if (error.name === 'ValidationError') {
+      return response.status(400).json({ error: error.message })
+   }
 
    next(error)
 }
 
 //set app usage
 app.use(cors())
-app.use(express.urlencoded({extended:true}))
+app.use(express.urlencoded({ extended: true }))
 app.use(express.static('dist'))
 app.use(express.json())
 
 //set morgan token to print data.
-morgan.token('data', function(request, response) {
+morgan.token('data', function (request, response) {
    return JSON.stringify(request.body)
 })
 
@@ -40,7 +43,7 @@ app.use(morgan(function (tokens, request, response) {
          "METHOD: ", tokens.method(request, response), "\n",
          "URL: ", tokens.url(request, response), "\n",
          "STATUS: ", tokens.status(request, response), "\n",
-         "RES_TIME: ", tokens['response-time'](request,response), "ms\n",
+         "RES_TIME: ", tokens['response-time'](request, response), "ms\n",
          "DATA:", tokens.data(request, response)
       ].join(" ")
    }
@@ -49,7 +52,7 @@ app.use(morgan(function (tokens, request, response) {
       "METHOD: ", tokens.method(request, response), "\n",
       "URL: ", tokens.url(request, response), "\n",
       "STATUS: ", tokens.status(request, response), "\n",
-      "RES_TIME: ", tokens['response-time'](request,response), "ms"
+      "RES_TIME: ", tokens['response-time'](request, response), "ms"
    ].join(" ")
 }))
 
@@ -81,32 +84,22 @@ app.delete('/api/persons/:id', (request, response, next) => {
 
 //replace oldPhone number with new
 app.put('/api/persons/:id', (request, response, next) => {
-   const body = request.body;
-
-   if (body.name === undefined || body.number === undefined)
-      return response.status(400).json({
-     error: 'content missing'
-  })
-
-  Person
-   .findByIdAndUpdate(request.params.id, {
-      name: body.name,
-      number: body.number
-  }, {new: true})
-   .then(result => {
-      console.log(result)
-      response.json(result)})
-   .catch(error => next(error))
+   const { name, number } = request.body;
+   Person
+      .findByIdAndUpdate(request.params.id, {
+         name: body.name,
+         number: body.number
+      }, { new: true , runValidators: true, context: 'query'})
+      .then(result => {
+         console.log(result)
+         response.json(result)
+      })
+      .catch(error => next(error))
 })
 
 //create new Person in database
 app.post('/api/persons', (request, response, next) => {
    const body = request.body
-
-   if (body.name === undefined || body.number === undefined)
-      return response.status(400).json({
-         error: 'content missing'
-   })
 
    const newPerson = new Person({
       name: body.name,
@@ -116,6 +109,7 @@ app.post('/api/persons', (request, response, next) => {
    newPerson.save().then(saved => {
       response.json(saved)
    })
+      .catch(error => next(error))
 })
 
 //get by ID
@@ -125,7 +119,7 @@ app.get('/api/persons/:id', (request, response, next) => {
          if (person) response.json(person)
          else response.status(404).end();
       })
-      .catch (error => next(error))
+      .catch(error => next(error))
 })
 
 //get info
