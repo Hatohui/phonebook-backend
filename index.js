@@ -63,6 +63,22 @@ app.get('/', (request, response) => {
    response.send('Error')
 })
 
+app.get('/Zahy', (request, response) => {
+   response.json({
+      name: "Bitch",
+      title: "Stinky Cat",
+      birthday: "16/2"
+   })
+})
+
+app.get('/Xonorth', (request, response) => {
+   response.json({
+      name: "Xonorth",
+      title: "Bitch of the year",
+      birthday: "17th August"
+   })
+})
+
 //get all values in database
 app.get('/api/persons', (request, response, next) => {
    Person
@@ -89,8 +105,8 @@ app.put('/api/persons/:id', (request, response, next) => {
    const { name, number } = request.body;
    Person
       .findByIdAndUpdate(request.params.id, {
-         name: body.name,
-         number: body.number
+         name: name,
+         number: number
       }, { new: true , runValidators: true, context: 'query'})
       .then(result => {
          console.log(result)
@@ -101,11 +117,11 @@ app.put('/api/persons/:id', (request, response, next) => {
 
 //create new Person in database
 app.post('/api/persons', (request, response, next) => {
-   const body = request.body
+   const {name, number} = request.body
 
    const newPerson = new Person({
-      name: body.name,
-      number: body.number
+      name: name,
+      number: number
    })
 
    newPerson.save().then(saved => {
