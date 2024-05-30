@@ -37,7 +37,9 @@ morgan.token('data', function (request, response) {
 
 //console logger
 app.use(morgan(function (tokens, request, response) {
-   if (tokens.method(request, response) === "POST" || tokens.method(request, response) === "PUT") {
+   if (tokens.method(request, response) === "POST" 
+      || tokens.method(request, response) === "PUT"
+      || tokens.method(request, response) === "DELETE") {
       return [
          "-------\n",
          "METHOD: ", tokens.method(request, response), "\n",
