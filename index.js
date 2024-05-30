@@ -5,7 +5,8 @@ const app = express()
 const morgan = require('morgan')
 const cors = require('cors')
 const PORT = process.env.PORT;
-const Person = require('./models/person')
+const Person = require('./models/person');
+const { trusted } = require('mongoose');
 
 //handlers
 const unknownEndpoint = (request, response) => {
@@ -72,6 +73,7 @@ app.get('/api/persons', (request, response, next) => {
 app.delete('/api/persons/:id', (request, response, next) => {
    Person.findByIdAndDelete(request.params.id)
       .then(result => {
+         response.json(result)
          response.status(204).end()
       })
       .catch(error => next(error))
@@ -87,12 +89,13 @@ app.put('/api/persons/:id', (request, response, next) => {
   })
 
   Person
-   .findByIdAndUpdate(request.params.id,
-       {
-         name: body.name,
-         number: body.number
-       })
-   .then(result => {response.status(204).end()})
+   .findByIdAndUpdate(request.params.id, {
+      name: body.name,
+      number: body.number
+  }, {new: true})
+   .then(result => {
+      console.log(result)
+      response.json(result)})
    .catch(error => next(error))
 })
 
@@ -101,8 +104,8 @@ app.post('/api/persons', (request, response, next) => {
    const body = request.body
 
    if (body.name === undefined || body.number === undefined)
-       return response.status(400).json({
-      error: 'content missing'
+      return response.status(400).json({
+         error: 'content missing'
    })
 
    const newPerson = new Person({
@@ -127,10 +130,12 @@ app.get('/api/persons/:id', (request, response, next) => {
 
 //get info
 app.get('/info', (request, response) => {
-   response.send(`
-   <div>Phonebook has info for ${Person.length} people</div>
-   <p>${Date()}</p>
-   `)
+   Person
+      .countDocuments({}).exec()
+      .then(value => response.send(`
+      <div>Phonebook has info for ${value} people</div>
+      <p>${Date()}</p>
+      `))
 })
 
 //page listener.

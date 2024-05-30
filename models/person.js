@@ -3,7 +3,6 @@ mongoose.set('strictQuery', false)
 
 //initializes command's values and database's link
 const url = process.env.DB_URL;
-console.log("connecting to", url)
 
 //connect, then log if failed
 mongoose.connect(url)
